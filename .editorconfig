@@ -1,0 +1,42 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = crlf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# C# Naming Conventions
+[*.{cs,vb}]
+dotnet_naming_symbols.interface_appellation.style = PascalCase
+dotnet_naming_symbols.class_appellation.style = PascalCase
+dotnet_naming_symbols.method_appellation.style = PascalCase
+dotnet_naming_symbols.private_field_appellation.style = camelCase
+dotnet_naming_symbols.public_field_appellation.style = PascalCase
+
+dotnet_naming_rule.interface_should_be_begins_with_i.symbols = interface_symbols
+dotnet_naming_rule.interface_should_be_begins_with_i.style = interface_style
+dotnet_naming_rule.interface_should_be_begins_with_i.severity = warning
+
+# C# Code Style
+[*.{cs,vb}]
+# var preferences
+dotnet_style_var_for_built_in_types = false:suggestion
+dotnet_style_var_for_other_types = false:suggestion
+dotnet_style_var_when_type_is_apparent = true:suggestion
+
+# Parentheses
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
+
+# Async/Await
+dotnet_style_async_method_suffix = Task:suggestion
+
+# Exceptions
+dotnet_style_throw_expression = true:suggestion
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
+
+# Access Modifiers
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
