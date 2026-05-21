@@ -1,4 +1,5 @@
 using HealthApi.Models;
+using HealthApi.DTOs;
 
 namespace HealthApi.Services;
 
@@ -91,5 +92,47 @@ public class HealthAnalyticsService : IHealthAnalyticsService
             ByService: byService);
 
         return Task.FromResult(stats);
+    }
+
+    public Task<IEnumerable<ServiceCheckCount>> GetServicesWithCheckCountAsync(IEnumerable<HealthRecord> records, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+
+        var query = records
+            .GroupBy(r => r.ServiceName)
+            .Select(g => new ServiceCheckCount(
+                ServiceName: g.Key,
+                CheckCount: g.Count()))
+            .OrderByDescending(x => x.CheckCount);
+
+        var result = query.ToList();
+
+        return Task.FromResult<IEnumerable<ServiceCheckCount>>(result);
+    }
+
+    public Task<IEnumerable<ServiceTrend>> GetHealthTrendAsync(IEnumerable<HealthRecord> records, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+
+        var trends = records
+            .GroupBy(r => r.ServiceName)
+            .Select(g =>
+            {
+                var ordered = g.OrderBy(r => r.CheckedAt).ToList();
+                var firstStatus = ordered.First().IsHealthy;
+                var lastStatus = ordered.Last().IsHealthy;
+
+                var trend = (firstStatus, lastStatus) switch
+                {
+                    (true, true) or (false, false) => "Stable",
+                    (false, true)                  => "Improved",
+                    (true, false)                  => "Degraded"
+                };
+
+                return new ServiceTrend(g.Key, trend);
+            })
+            .ToList();
+
+        return Task.FromResult<IEnumerable<ServiceTrend>>(trends);
     }
 }

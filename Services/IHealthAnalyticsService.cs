@@ -1,4 +1,5 @@
 using HealthApi.Models;
+using HealthApi.DTOs;
 
 namespace HealthApi.Services;
 
@@ -8,4 +9,6 @@ public interface IHealthAnalyticsService
     Task<IEnumerable<string>> GetServiceNamesAsync(IEnumerable<HealthRecord> records, CancellationToken ct);
     Task<HealthRecord?> GetFirstUnhealthyServiceAsync(IEnumerable<HealthRecord> records, CancellationToken ct);
     Task<HealthStats> GetHealthStatsAsync(IEnumerable<HealthRecord> records, CancellationToken ct);
+    Task<IEnumerable<ServiceCheckCount>> GetServicesWithCheckCountAsync(IEnumerable<HealthRecord> records, CancellationToken ct);
+    Task<IEnumerable<ServiceTrend>> GetHealthTrendAsync(IEnumerable<HealthRecord> records, CancellationToken ct);
 }

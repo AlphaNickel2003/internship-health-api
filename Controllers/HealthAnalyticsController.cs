@@ -42,4 +42,20 @@ public class HealthAnalyticsController : ControllerBase
 
         return Ok(first);
     }
+
+    [HttpGet("check-counts")]
+    public async Task<IActionResult> GetCheckCounts(CancellationToken ct)
+    {
+        var records = await _healthService.GetAllServiceStatusAsync(ct);
+        var checkCounts = await _analyticsService.GetServicesWithCheckCountAsync(records, ct);
+        return Ok(checkCounts);
+    }
+
+    [HttpGet("trends")]
+    public async Task<IActionResult> GetHealthTrends(CancellationToken ct)
+    {
+        var records = await _healthService.GetAllServiceStatusAsync(ct);
+        var trends = await _analyticsService.GetHealthTrendAsync(records, ct);
+        return Ok(trends);
+    }
 }
