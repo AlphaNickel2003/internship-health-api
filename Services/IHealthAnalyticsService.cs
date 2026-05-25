@@ -11,4 +11,11 @@ public interface IHealthAnalyticsService
     Task<HealthStats> GetHealthStatsAsync(IEnumerable<HealthRecord> records, CancellationToken ct);
     Task<IEnumerable<ServiceCheckCount>> GetServicesWithCheckCountAsync(IEnumerable<HealthRecord> records, CancellationToken ct);
     Task<IEnumerable<ServiceTrend>> GetHealthTrendAsync(IEnumerable<HealthRecord> records, CancellationToken ct);
+    Task<IEnumerable<HealthRecord>> GetFilteredServicesAsync(
+        IEnumerable<HealthRecord> records,
+        string? name,
+        bool? isHealthy,
+        int page,
+        int pageSize,
+        CancellationToken ct);
 }

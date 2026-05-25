@@ -16,6 +16,32 @@ public class HealthAnalyticsController : ControllerBase
         _analyticsService = analyticsService;
     }
 
+    [HttpGet("filter")]
+    public async Task<IActionResult> GetFilteredServices(
+        CancellationToken ct,
+        [FromQuery] string? name,
+        [FromQuery] bool? isHealthy,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        if (page < 1)
+            return BadRequest("Номер страницы не может быть меньше 1.");
+
+        if (pageSize < 1 || pageSize > 100)
+            return BadRequest("Размер страницы должен быть от 1 до 100.");
+
+        var records = await _healthService.GetAllServiceStatusAsync(ct);
+        var result = await _analyticsService.GetFilteredServicesAsync(
+            records, name, isHealthy, page, pageSize, ct);
+
+        if (!result.Any())
+        {
+            return NotFound("Записи не найдены по заданным фильтрам");
+        }
+
+        return Ok(result);
+    }
+
     [HttpGet("healthy")]
     public async Task<IActionResult> GetHealthyServices(CancellationToken ct)
     {

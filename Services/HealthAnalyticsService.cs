@@ -135,4 +135,43 @@ public class HealthAnalyticsService : IHealthAnalyticsService
 
         return Task.FromResult<IEnumerable<ServiceTrend>>(trends);
     }
+
+    public Task<IEnumerable<HealthRecord>> GetFilteredServicesAsync(
+        IEnumerable<HealthRecord> records,
+        string? name,
+        bool? isHealthy,
+        int page,
+        int pageSize,
+        CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+
+        var filtered = records;
+
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            filtered = filtered.Where(r =>
+                r.ServiceName.Equals(name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (isHealthy.HasValue)
+        {
+            filtered = filtered.Where(r =>
+                r.IsHealthy == isHealthy.Value);
+        }
+
+        filtered = filtered.OrderBy(r => r.ServiceName);
+
+        var safePage = page < 1 ? 1 : page;
+        var safePageSize = pageSize < 1 ? 10 : pageSize;
+
+        var skipCount = (safePage - 1) * safePageSize;
+
+        var result = filtered
+            .Skip(skipCount)
+            .Take(safePageSize)
+            .ToList();
+
+        return Task.FromResult<IEnumerable<HealthRecord>>(result);
+    }
 }

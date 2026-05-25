@@ -11,6 +11,7 @@ public class HealthAnalyticsServiceTests
 {
     private readonly HealthAnalyticsService _service;
     private readonly List<HealthRecord> _testRecords;
+    private readonly List<HealthRecord> _test2Records;
 
     public HealthAnalyticsServiceTests()
     {
@@ -22,6 +23,52 @@ public class HealthAnalyticsServiceTests
             new HealthRecord("email", false, DateTime.UtcNow),
             new HealthRecord("database", false, DateTime.UtcNow.AddMinutes(-1))
         };
+
+        _test2Records = new List<HealthRecord>();
+        for (int i = 1; i <= 10; i++)
+        {
+            _test2Records.Add(new HealthRecord(
+                ServiceName: $"Service{i:D2}",
+                IsHealthy: i % 2 == 0,
+                CheckedAt: DateTime.UtcNow));
+        }
+    }
+
+    [Fact]
+    public async Task GetFilteredServicesAsync_ReturnsCorrectPageSize()
+    {
+        var ct = CancellationToken.None;
+
+        var result = await _service.GetFilteredServicesAsync(
+            _test2Records, null, null, page: 1, pageSize: 3, ct);
+        var list = result.ToList();
+
+        Assert.Equal(3, list.Count);
+    }
+
+    [Fact]
+    public async Task GetFilteredServicesAsync_SkipsCorrectly()
+    {
+        var ct = CancellationToken.None;
+
+        var result = await _service.GetFilteredServicesAsync(
+            _test2Records, null, null, page: 2, pageSize: 3, ct);
+        var list = result.ToList();
+
+        Assert.Equal("Service04", list.First().ServiceName);
+    }
+
+    [Fact]
+    public async Task GetFilteredServicesAsync_FiltersByName()
+    {
+        var ct = CancellationToken.None;
+
+        var result = await _service.GetFilteredServicesAsync(
+            _test2Records, "Service01", null, page: 1, pageSize: 10, ct);
+        var list = result.ToList();
+        
+        Assert.Single(list);
+        Assert.Equal("Service01", list.First().ServiceName);
     }
 
     [Fact]
