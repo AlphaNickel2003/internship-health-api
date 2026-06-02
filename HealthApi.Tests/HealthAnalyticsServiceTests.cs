@@ -18,19 +18,19 @@ public class HealthAnalyticsServiceTests
         _service = new HealthAnalyticsService();
         _testRecords = new List<HealthRecord>
         {
-            new HealthRecord("database", true, DateTime.UtcNow),
-            new HealthRecord("cache", true, DateTime.UtcNow),
-            new HealthRecord("email", false, DateTime.UtcNow),
-            new HealthRecord("database", false, DateTime.UtcNow.AddMinutes(-1))
+            new HealthRecord{ServiceName = "database", IsHealthy = true, CheckedAt = DateTime.UtcNow},
+            new HealthRecord{ServiceName = "cache", IsHealthy = true, CheckedAt = DateTime.UtcNow},
+            new HealthRecord{ServiceName = "email", IsHealthy = false, CheckedAt = DateTime.UtcNow},
+            new HealthRecord{ServiceName = "database", IsHealthy = false, CheckedAt = DateTime.UtcNow.AddMinutes(-1)}
         };
 
         _test2Records = new List<HealthRecord>();
         for (int i = 1; i <= 10; i++)
         {
-            _test2Records.Add(new HealthRecord(
-                ServiceName: $"Service{i:D2}",
-                IsHealthy: i % 2 == 0,
-                CheckedAt: DateTime.UtcNow));
+            _test2Records.Add(new HealthRecord{
+                ServiceName = $"Service{i:D2}",
+                IsHealthy = i % 2 == 0,
+                CheckedAt = DateTime.UtcNow});
         }
     }
 

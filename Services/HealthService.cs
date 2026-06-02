@@ -1,44 +1,47 @@
+using HealthApi.Data;
 using HealthApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HealthApi.Services;
 
 public class HealthService : IHealthService
 {
+    private readonly AppDbContext _context;
 
-    public readonly Dictionary<string, HealthRecord> _services;
-
-    public HealthService()
+    public HealthService(AppDbContext context)
     {
-        _services = new Dictionary<string, HealthRecord>(StringComparer.OrdinalIgnoreCase)
-        {
-            {"database", new HealthRecord("database", true, DateTime.UtcNow) },
-            {"cache", new HealthRecord("cache", true, DateTime.UtcNow) },
-            {"email", new HealthRecord("email", false, DateTime.UtcNow) }
-        };
+        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public Task<HealthRecord> GetServiceStatusAsync(
+    public async Task<HealthRecord?> GetServiceStatusAsync(
         string serviceName,
         CancellationToken ct)
     {
-        //Проверка отмены операции
         ct.ThrowIfCancellationRequested();
 
-        if (_services.TryGetValue(serviceName, out var record))
-        {
-            return Task.FromResult(record);
-        }
-        
-        //Если не найден - возвращаем фейковую запись со статусом жизни false
-        return Task.FromResult( new HealthRecord(serviceName, false, DateTime.UtcNow));
+        return await _context.HealthRecords
+            .Where(r => r.ServiceName == serviceName)
+            .OrderByDescending(r => r.CheckedAt)
+            .FirstOrDefaultAsync();
     }
 
-    public Task<IEnumerable<HealthRecord>> GetAllServiceStatusAsync(
+    public async Task<IEnumerable<HealthRecord>> GetAllServiceStatusAsync(
         CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
 
-        //Возвращаем все значения из словаря
-        return Task.FromResult<IEnumerable<HealthRecord>>(_services.Values);
+        return await _context.HealthRecords
+            .OrderByDescending(r => r.CheckedAt)
+            .ToListAsync(ct);
+    }
+
+    public async Task<HealthRecord> AddHealthRecordAsync(HealthRecord record, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+
+        _context.HealthRecords.Add(record);
+        await _context.SaveChangesAsync(ct);
+
+        return record;
     }
 }   

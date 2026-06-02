@@ -36,3 +36,6 @@ bld/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Settings
+appsettings.Development.json
