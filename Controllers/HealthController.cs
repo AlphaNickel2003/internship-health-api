@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using HealthApi.Services;
 using Microsoft.AspNetCore.SignalR;
 using System.Diagnostics;
+using HealthApi.DTOs;
 
 namespace HealthApi.Controllers;
 
@@ -49,5 +50,58 @@ public class HealthController : ControllerBase
         var overallHealthy = all.All(r => r.IsHealthy);
 
         return Ok(new { status = overallHealthy ? "OK" : "DEGRADED", checkedAt = DateTime.UtcNow });
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetById(int id, CancellationToken ct)
+    {
+        var record = await _healthService.GetByIdAsync(id, ct);
+        if (record == null) return NotFound();
+
+        var dto = new HealthRecordResponseDto(
+            record.Id, 
+            record.ServiceName, 
+            record.IsHealthy, 
+            record.CheckedAt);
+            return Ok(dto);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> AddRecord(
+        [FromBody] CreateHealthRecordDto dto, 
+        CancellationToken ct)
+    {
+        var createdEntity = await _healthService.AddAsync(dto, ct);
+
+        var responseDto = new HealthRecordResponseDto(
+            createdEntity.Id,
+            createdEntity.ServiceName,
+            createdEntity.IsHealthy,
+            createdEntity.CheckedAt
+        );
+
+        return CreatedAtAction(
+            nameof(GetById), 
+            new { id = responseDto.Id}, 
+            responseDto);
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> UpdateRecordStatus(
+        int id, 
+        [FromBody] UpdateHealthStatusDto dto, 
+        CancellationToken ct)
+    {
+        var isUpdated = await _healthService.UpdateStatusAsync(id, dto, ct);
+        if (!isUpdated) return NotFound();
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteRecord(int id, CancellationToken ct)
+    {
+        var isDeleted = await _healthService.DeleteAsync(id, ct);
+        if (!isDeleted) return NotFound();
+        return NoContent();
     }
 }
